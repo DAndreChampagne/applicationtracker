@@ -11,12 +11,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
 });
 
 
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
 
 
 var app = builder.Build();
@@ -25,6 +22,16 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // seed database
+    using (var scope = app.Services.CreateScope()) {
+        try {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            context.Database.EnsureCreated();
+        } catch (Exception ex) {
+            throw;
+        }
+    }
 }
 
 app.UseHttpsRedirection();
