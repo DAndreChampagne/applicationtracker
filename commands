@@ -1,0 +1,2 @@
+dotnet aspnet-codegenerator controller -name CompanyController -async -api -m ApplicationTracker.Model.Company -dc ApplicationDbContext -outDir Controllers
+
