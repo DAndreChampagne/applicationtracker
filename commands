@@ -1,2 +1,8 @@
+
+
 dotnet aspnet-codegenerator controller -name CompanyController -async -api -m ApplicationTracker.Model.Company -dc ApplicationDbContext -outDir Controllers
+
+dotnet aspnet-codegenerator controller -name ContactsController -async -m ApplicationTracker.Model.Contact -dc ApplicationTracker.Common.Contexts.ApplicationDbContext --relativeFolderPath "Areas/Admin/Controllers/" --referenceScriptLibraries --useDefaultLayout --force
+dotnet aspnet-codegenerator controller -name CompaniesController -async -m ApplicationTracker.Model.Company -dc ApplicationTracker.Common.Contexts.ApplicationDbContext --relativeFolderPath "Areas/Admin/Controllers/" --referenceScriptLibraries --useDefaultLayout --force
+dotnet aspnet-codegenerator controller -name ApplicationsController -async -m ApplicationTracker.Model.Application -dc ApplicationTracker.Common.Contexts.ApplicationDbContext --relativeFolderPath "Areas/Admin/Controllers/" --referenceScriptLibraries --useDefaultLayout --force
 

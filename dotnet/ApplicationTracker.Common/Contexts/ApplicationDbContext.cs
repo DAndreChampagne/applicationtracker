@@ -1,13 +1,14 @@
-namespace ApplicationTracker.Contexts;
+namespace ApplicationTracker.Common.Contexts;
 
 using ApplicationTracker.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 
 public class ApplicationDbContext : DbContext {
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {
-
-    }
+    public ApplicationDbContext(): base() {}
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {}
 
     public virtual DbSet<Application> Applications { get; set; }
 
@@ -15,8 +16,18 @@ public class ApplicationDbContext : DbContext {
 
     public virtual DbSet<Contact> Contacts { get; set; }
 
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+        if (!optionsBuilder.IsConfigured) {
+            base.OnConfiguring(optionsBuilder);
+
+            optionsBuilder.UseInMemoryDatabase("ApplicationTracker");
+        }
+    }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
-        // base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(modelBuilder);
 
         modelBuilder.Seed();
     }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ApplicationTracker.Contexts;
+using ApplicationTracker.Common.Contexts;
 using ApplicationTracker.Model;
 
 namespace ApplicationTracker.API.Controllers

@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using ApplicationTracker.Model;
-using ApplicationTracker.Contexts;
+using ApplicationTracker.Common.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => {
-    options.UseInMemoryDatabase("ApplicationTracker"); 
+    options.UseInMemoryDatabase("ApplicationTracker");
 });
 
 
