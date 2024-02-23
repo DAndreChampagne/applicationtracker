@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ApplicationTracker.Common.Contexts;
 using ApplicationTracker.Model;
+using System.Text.Json;
+using PluralizeService.Core;
 
 namespace ApplicationTracker.Web.Areas.Admin.Controllers
 {
@@ -14,6 +16,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
     public class ApplicationsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly Uri ApiUri = new(@"https://localhost:7281/api/");
 
         public ApplicationsController(ApplicationDbContext context)
         {
@@ -23,8 +26,24 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // GET: Admin/Applications
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Applications.Include(a => a.Company).Include(a => a.Contact);
-            return View(await applicationDbContext.ToListAsync());
+            // var applicationDbContext = _context.Applications.Include(a => a.Company).Include(a => a.Contact);
+            // return View(await applicationDbContext.ToListAsync());
+
+            using var client = new HttpClient();
+            client.BaseAddress = ApiUri;
+
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            var response = await client.GetAsync(@"applications");
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, response.ReasonPhrase);
+            
+            var content = response.Content;
+            var stream = await response.Content.ReadAsStreamAsync() ?? Stream.Null;
+
+            var items = await JsonSerializer.DeserializeAsync<List<Application>>(stream);
+
+            return View(items);
         }
 
         // GET: Admin/Applications/Details/5

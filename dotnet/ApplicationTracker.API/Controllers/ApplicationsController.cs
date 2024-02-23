@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApplicationTracker.Common.Contexts;
 using ApplicationTracker.Model;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ApplicationTracker.API.Controllers
 {
@@ -25,7 +26,12 @@ namespace ApplicationTracker.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Application>>> GetApplications()
         {
-            return await _context.Applications.ToListAsync();
+            var items = await _context.Applications
+                .Include(x => x.Company)
+                .Include(x => x.Contact)
+                .ToListAsync();
+
+            return items;
         }
 
         // GET: api/Applications/5
