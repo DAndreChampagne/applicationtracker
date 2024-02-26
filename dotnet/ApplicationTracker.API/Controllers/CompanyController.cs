@@ -12,11 +12,11 @@ namespace ApplicationTracker.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CompanyController : ControllerBase
+    public class CompaniesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public CompanyController(ApplicationDbContext context)
+        public CompaniesController(ApplicationDbContext context)
         {
             _context = context;
         }

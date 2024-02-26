@@ -9,57 +9,39 @@ using ApplicationTracker.Common.Contexts;
 using ApplicationTracker.Model;
 using System.Text.Json;
 using PluralizeService.Core;
+using System.Collections;
+using Newtonsoft.Json.Serialization;
+using ApplicationTracker.Common.Services;
 
-namespace ApplicationTracker.Web.Areas.Admin.Controllers
-{
+namespace ApplicationTracker.Web.Areas.Admin.Controllers {
+
     [Area("Admin")]
-    public class ApplicationsController : Controller
-    {
-        private readonly ApplicationDbContext _context;
-        private readonly Uri ApiUri = new(@"https://localhost:7281/api/");
+    public class ApplicationsController : Controller {
 
-        public ApplicationsController(ApplicationDbContext context)
-        {
-            _context = context;
+        private readonly ApiService<Application> _api;
+        private readonly ApiService<Contact> _contactsApi;
+        private readonly ApiService<Company> _companiesApi;
+
+        public ApplicationsController(ApiService<Application> api, ApiService<Contact> contactsApi, ApiService<Company> companiesApi) {
+            _api = api;
+            _contactsApi = contactsApi;
+            _companiesApi = companiesApi;
         }
 
         // GET: Admin/Applications
-        public async Task<IActionResult> Index()
-        {
-            // var applicationDbContext = _context.Applications.Include(a => a.Company).Include(a => a.Contact);
-            // return View(await applicationDbContext.ToListAsync());
-
-            using var client = new HttpClient();
-            client.BaseAddress = ApiUri;
-
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-            var response = await client.GetAsync(@"applications");
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, response.ReasonPhrase);
-            
-            var content = response.Content;
-            var stream = await response.Content.ReadAsStreamAsync() ?? Stream.Null;
-
-            var items = await JsonSerializer.DeserializeAsync<List<Application>>(stream);
-
-            return View(items);
+        public async Task<IActionResult> Index() {
+            return View(await _api.GetAsync());
         }
 
         // GET: Admin/Applications/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
+            if (id is null) {
                 return NotFound();
             }
 
-            var application = await _context.Applications
-                .Include(a => a.Company)
-                .Include(a => a.Contact)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (application == null)
-            {
+            var application = await _api.GetAsync(id.Value);
+            if (application is null) {
                 return NotFound();
             }
 
@@ -67,10 +49,16 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         }
 
         // GET: Admin/Applications/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name");
+            // ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
+            // ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name");
+
+            var c1 = await _companiesApi.GetAsync();
+            var c2 = await _contactsApi.GetAsync();
+
+            ViewData["CompanyId"] = new SelectList(await _companiesApi.GetAsync(), "Id", "Name");
+            ViewData["ContactId"] = new SelectList(await _contactsApi.GetAsync(), "Id", "Name");
             return View();
         }
 
@@ -81,14 +69,17 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Link,CompanyId,ContactId,Title,Type,Location,MatchPercent,SalaryMin,SalaryMax,Status,ApplicationStatusReason,DateApplied,FollowUps,Notes")] Application application)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(application);
-                await _context.SaveChangesAsync();
+            if (ModelState.IsValid) {
+                // _context.Add(application);
+                // await _context.SaveChangesAsync();
+                var result = await _api.PostAsync(application);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", application.CompanyId);
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", application.ContactId);
+
+            // ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", application.CompanyId);
+            // ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", application.ContactId);
+            ViewData["CompanyId"] = new SelectList(await _companiesApi.GetAsync(), "Id", "Name");
+            ViewData["ContactId"] = new SelectList(await _contactsApi.GetAsync(), "Id", "Name");
             return View(application);
         }
 
@@ -100,13 +91,17 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var application = await _context.Applications.FindAsync(id);
+            // var application = await _context.Applications.FindAsync(id);
+            var application = await _api.GetAsync(id.Value);
             if (application == null)
             {
                 return NotFound();
             }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", application.CompanyId);
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", application.ContactId);
+
+            // ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", application.CompanyId);
+            // ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", application.ContactId);
+            ViewData["CompanyId"] = new SelectList(await _companiesApi.GetAsync(), "Id", "Name");
+            ViewData["ContactId"] = new SelectList(await _contactsApi.GetAsync(), "Id", "Name");
             return View(application);
         }
 
@@ -115,55 +110,47 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Link,CompanyId,ContactId,Title,Type,Location,MatchPercent,SalaryMin,SalaryMax,Status,ApplicationStatusReason,DateApplied,FollowUps,Notes")] Application application)
-        {
-            if (id != application.Id)
-            {
-                return NotFound();
-            }
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Link,CompanyId,ContactId,Title,Type,Location,MatchPercent,SalaryMin,SalaryMax,Status,ApplicationStatusReason,DateApplied,FollowUps,Notes")] Application application) {
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(application);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ApplicationExists(application.Id))
-                    {
+            if (id != application.Id)
+                return NotFound();
+
+            if (ModelState.IsValid) {
+                try {
+                    var item = await _api.PutAsync(id, application);
+                    if (item is null)
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                } catch (DbUpdateConcurrencyException) {
+                    if (!await ApplicationExists(application.Id)) {
                         return NotFound();
-                    }
-                    else
-                    {
+                    } else {
                         throw;
                     }
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", application.CompanyId);
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", application.ContactId);
+
+            // ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", application.CompanyId);
+            // ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", application.ContactId);
+            ViewData["CompanyId"] = new SelectList(await _companiesApi.GetAsync(), "Id", "Name");
+            ViewData["ContactId"] = new SelectList(await _contactsApi.GetAsync(), "Id", "Name");
             return View(application);
         }
 
         // GET: Admin/Applications/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
+            if (id is null)
                 return NotFound();
-            }
 
-            var application = await _context.Applications
-                .Include(a => a.Company)
-                .Include(a => a.Contact)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (application == null)
-            {
+            // var application = await _context.Applications
+            //     .Include(a => a.Company)
+            //     .Include(a => a.Contact)
+            //     .FirstOrDefaultAsync(m => m.Id == id);
+            var application = _api.GetAsync(id.Value);
+        
+            if (application is null)
                 return NotFound();
-            }
-
             return View(application);
         }
 
@@ -172,19 +159,21 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var application = await _context.Applications.FindAsync(id);
-            if (application != null)
-            {
-                _context.Applications.Remove(application);
+            // var application = await _context.Applications.FindAsync(id);
+            var application = await _api.GetAsync(id);
+            if (application != null) {
+                // _context.Applications.Remove(application);
+                await _api.DeleteAsync(id);
             }
 
-            await _context.SaveChangesAsync();
+            // await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ApplicationExists(int id)
+        private async Task<bool> ApplicationExists(int id)
         {
-            return _context.Applications.Any(e => e.Id == id);
+            // return _context.Applications.Any(e => e.Id == id);
+            return await _api.ExistsAsync(id);
         }
     }
 }

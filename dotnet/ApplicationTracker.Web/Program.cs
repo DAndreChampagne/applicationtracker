@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ApplicationTracker.Common.Contexts;
+using ApplicationTracker.Common.Services;
+using ApplicationTracker.Model;
+using ApplicationTracker.Web.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,13 +11,23 @@ builder.Services.AddDbContext<ApplicationTracker.Common.Contexts.ApplicationDbCo
     options.UseInMemoryDatabase("ApplicationTracker");
 });
 
-    // options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
+// options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
 
 
 
 var controllers = builder.Services.AddControllersWithViews();
 if (builder.Environment.IsDevelopment())
     controllers.AddRazorRuntimeCompilation();
+
+
+
+
+
+
+builder.Services.AddScoped<ApiService<Application>>();
+builder.Services.AddScoped<ApiService<Company>>();
+builder.Services.AddScoped<ApiService<Contact>>();
+
 
 
 var app = builder.Build();
@@ -24,8 +37,8 @@ if (!app.Environment.IsDevelopment()) {
 
     app.UseExceptionHandler("/Home/Error");
     
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+
 } else {
 
      // seed database

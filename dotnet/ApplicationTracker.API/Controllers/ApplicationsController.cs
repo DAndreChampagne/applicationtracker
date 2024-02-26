@@ -106,9 +106,10 @@ namespace ApplicationTracker.API.Controllers
             return NoContent();
         }
 
-        private bool ApplicationExists(int id)
-        {
-            return _context.Applications.Any(e => e.Id == id);
-        }
+        [HttpGet("exists/{id}")]
+        public async Task<bool> Exists(int id) => await _context.Applications.AnyAsync(e => e.Id == id);
+        
+        private bool ApplicationExists(int id) => _context.Applications.Any(e => e.Id == id);
+
     }
 }

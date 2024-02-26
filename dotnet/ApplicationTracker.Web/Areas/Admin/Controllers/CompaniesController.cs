@@ -23,8 +23,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // GET: Admin/Companies
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Companies.Include(c => c.Contact);
-            return View(await applicationDbContext.ToListAsync());
+            return View(await _context.Companies.ToListAsync());
         }
 
         // GET: Admin/Companies/Details/5
@@ -35,21 +34,19 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var company = await _context.Companies
-                .Include(c => c.Contact)
+            var item = await _context.Companies
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (company == null)
+            if (item == null)
             {
                 return NotFound();
             }
 
-            return View(company);
+            return View(item);
         }
 
         // GET: Admin/Companies/Create
         public IActionResult Create()
         {
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name");
             return View();
         }
 
@@ -58,16 +55,15 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,ContactId")] Company company)
+        public async Task<IActionResult> Create([Bind("Id,Name,CompanyId")] Company item)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(company);
+                _context.Add(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", company.ContactId);
-            return View(company);
+            return View(item);
         }
 
         // GET: Admin/Companies/Edit/5
@@ -78,13 +74,12 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var company = await _context.Companies.FindAsync(id);
-            if (company == null)
+            var item = await _context.Companies.FindAsync(id);
+            if (item == null)
             {
                 return NotFound();
             }
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", company.ContactId);
-            return View(company);
+            return View(item);
         }
 
         // POST: Admin/Companies/Edit/5
@@ -92,9 +87,9 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ContactId")] Company company)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CompanyId")] Company item)
         {
-            if (id != company.Id)
+            if (id != item.Id)
             {
                 return NotFound();
             }
@@ -103,12 +98,12 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(company);
+                    _context.Update(item);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CompanyExists(company.Id))
+                    if (!CompanyExists(item.Id))
                     {
                         return NotFound();
                     }
@@ -119,8 +114,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ContactId"] = new SelectList(_context.Contacts, "Id", "Name", company.ContactId);
-            return View(company);
+            return View(item);
         }
 
         // GET: Admin/Companies/Delete/5
@@ -131,15 +125,14 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var company = await _context.Companies
-                .Include(c => c.Contact)
+            var item = await _context.Companies
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (company == null)
+            if (item == null)
             {
                 return NotFound();
             }
 
-            return View(company);
+            return View(item);
         }
 
         // POST: Admin/Companies/Delete/5
@@ -147,10 +140,10 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
-            if (company != null)
+            var item = await _context.Companies.FindAsync(id);
+            if (item != null)
             {
-                _context.Companies.Remove(company);
+                _context.Companies.Remove(item);
             }
 
             await _context.SaveChangesAsync();
