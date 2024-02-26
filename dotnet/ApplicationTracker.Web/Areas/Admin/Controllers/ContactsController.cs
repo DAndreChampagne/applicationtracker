@@ -7,23 +7,24 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ApplicationTracker.Common.Contexts;
 using ApplicationTracker.Model;
+using ApplicationTracker.Common.Services;
 
 namespace ApplicationTracker.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class ContactsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApiService<Contact> _api;
 
-        public ContactsController(ApplicationDbContext context)
+        public ContactsController(ApiService<Contact> api)
         {
-            _context = context;
+            _api = api;
         }
 
         // GET: Admin/Contacts
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Contacts.ToListAsync());
+            return View(await _api.GetAsync());
         }
 
         // GET: Admin/Contacts/Details/5
@@ -34,8 +35,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contacts
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var contact = await _api.GetAsync(id.Value);
             if (contact == null)
             {
                 return NotFound();
@@ -59,8 +59,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(contact);
-                await _context.SaveChangesAsync();
+                await _api.PostAsync(contact);
                 return RedirectToAction(nameof(Index));
             }
             return View(contact);
@@ -74,7 +73,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contacts.FindAsync(id);
+            var contact = await _api.GetAsync(id.Value);
             if (contact == null)
             {
                 return NotFound();
@@ -98,12 +97,11 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(contact);
-                    await _context.SaveChangesAsync();
+                    await _api.PutAsync(id, contact);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ContactExists(contact.Id))
+                    if (!await ContactExistsAsync(contact.Id))
                     {
                         return NotFound();
                     }
@@ -125,8 +123,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contacts
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var contact = await _api.GetAsync(id.Value);
             if (contact == null)
             {
                 return NotFound();
@@ -140,19 +137,18 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var contact = await _context.Contacts.FindAsync(id);
+            var contact = await _api.GetAsync(id);
             if (contact != null)
             {
-                _context.Contacts.Remove(contact);
+                await _api.DeleteAsync(id);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ContactExists(int id)
+        private async Task<bool> ContactExistsAsync(int id)
         {
-            return _context.Contacts.Any(e => e.Id == id);
+            return await _api.ExistsAsync(id);
         }
     }
 }
