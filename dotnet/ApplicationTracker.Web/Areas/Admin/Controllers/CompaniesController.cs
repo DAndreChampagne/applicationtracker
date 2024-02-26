@@ -7,35 +7,34 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ApplicationTracker.Common.Contexts;
 using ApplicationTracker.Model;
+using ApplicationTracker.Common.Services;
 
 namespace ApplicationTracker.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class CompaniesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApiService<Company> _api;
 
-        public CompaniesController(ApplicationDbContext context)
-        {
-            _context = context;
+        public CompaniesController(ApiService<Company> api) {
+            _api = api;   
         }
 
         // GET: Admin/Companies
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Companies.ToListAsync());
+            return View(await _api.GetAsync());
         }
 
         // GET: Admin/Companies/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            if (id is null)
             {
                 return NotFound();
             }
 
-            var item = await _context.Companies
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var item = await _api.GetAsync(id.Value);
             if (item == null)
             {
                 return NotFound();
@@ -59,10 +58,10 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(item);
-                await _context.SaveChangesAsync();
+                await _api.PostAsync(item);
                 return RedirectToAction(nameof(Index));
             }
+
             return View(item);
         }
 
@@ -74,7 +73,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var item = await _context.Companies.FindAsync(id);
+            var item = await _api.GetAsync(id.Value);
             if (item == null)
             {
                 return NotFound();
@@ -98,12 +97,13 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(item);
-                    await _context.SaveChangesAsync();
+                    var result = await _api.PutAsync(id, item);
+                    if (result is null)
+                        return StatusCode(StatusCodes.Status500InternalServerError);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CompanyExists(item.Id))
+                    if (!await CompanyExistsAsync(item.Id))
                     {
                         return NotFound();
                     }
@@ -125,8 +125,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var item = await _context.Companies
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var item = await _api.GetAsync(id.Value);
             if (item == null)
             {
                 return NotFound();
@@ -140,19 +139,18 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var item = await _context.Companies.FindAsync(id);
+            var item = await _api.GetAsync(id);
             if (item != null)
             {
-                _context.Companies.Remove(item);
+                await _api.DeleteAsync(id);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CompanyExists(int id)
+        private async Task<bool> CompanyExistsAsync(int id)
         {
-            return _context.Companies.Any(e => e.Id == id);
+            return await _api.ExistsAsync(id);
         }
     }
 }
