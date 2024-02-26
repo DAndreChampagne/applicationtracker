@@ -15,9 +15,11 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
     public class CompaniesController : Controller
     {
         private readonly ApiService<Company> _api;
+        private readonly ApiService<Contact> _contactsApi;
 
-        public CompaniesController(ApiService<Company> api) {
-            _api = api;   
+        public CompaniesController(ApiService<Company> api, ApiService<Contact> contactsApi) {
+            _api = api;
+            _contactsApi = contactsApi;
         }
 
         // GET: Admin/Companies
@@ -44,7 +46,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         }
 
         // GET: Admin/Companies/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             return View();
         }
@@ -54,7 +56,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,CompanyId")] Company item)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Company item)
         {
             if (ModelState.IsValid)
             {
@@ -78,6 +80,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
             return View(item);
         }
 
@@ -86,7 +89,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CompanyId")] Company item)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Company item)
         {
             if (id != item.Id)
             {
@@ -114,6 +117,7 @@ namespace ApplicationTracker.Web.Areas.Admin.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
             return View(item);
         }
 

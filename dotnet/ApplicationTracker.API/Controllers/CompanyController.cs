@@ -32,7 +32,9 @@ namespace ApplicationTracker.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Company>> GetCompany(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
+            var company = await _context.Companies
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
 
             if (company == null)
             {
@@ -88,7 +90,10 @@ namespace ApplicationTracker.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompany(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
+            var company = await _context.Companies
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+
             if (company == null)
             {
                 return NotFound();

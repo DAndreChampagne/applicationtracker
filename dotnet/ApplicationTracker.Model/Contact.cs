@@ -8,5 +8,4 @@ public class Contact {
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public List<string> Notes { get; set; } = new();
-    
 }

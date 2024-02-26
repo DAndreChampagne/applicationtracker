@@ -23,10 +23,11 @@ if (builder.Environment.IsDevelopment())
 
 
 
-
-builder.Services.AddScoped<ApiService<Application>>();
-builder.Services.AddScoped<ApiService<Company>>();
 builder.Services.AddScoped<ApiService<Contact>>();
+builder.Services.AddScoped<ApiService<Company>>();
+builder.Services.AddScoped<ApiService<Application>>();
+
+
 
 
 

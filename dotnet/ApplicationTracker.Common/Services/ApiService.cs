@@ -31,6 +31,8 @@ namespace ApplicationTracker.Common.Services {
         }
 
 
+        #region Helper methods
+
         internal string _BuildEndpoint(string endpoint, params object[] args) {
             ArgumentNullException.ThrowIfNull(endpoint);
             return (args.Length > 0) ? Path.Combine(endpoint, string.Join('/', args)) : endpoint;
@@ -45,11 +47,16 @@ namespace ApplicationTracker.Common.Services {
             return await JsonSerializer.DeserializeAsync<X>(stream, _SerializerOptions);
         }
 
+        #endregion
+        
+
         internal async Task<IEnumerable<T>> ExecuteGetAsync(string endpoint, params object[] args) {
             var response = await _ExecuteGetRequestAsync(endpoint, args);
             if (!response.IsSuccessStatusCode)
                 return [];
-            return await _ProcessResponseAsync<IEnumerable<T>>(response) ?? [];
+            var results = await _ProcessResponseAsync<IEnumerable<T>>(response);
+
+            return results ?? [];
         }
 
         internal async Task<T?> ExecuteGetOneAsync(string endpoint, params object[] args) {
@@ -74,7 +81,6 @@ namespace ApplicationTracker.Common.Services {
         }
 
         internal async Task<bool> ExecuteDeleteAsync(string endpoint, int id) {
-            // var response = await Client.PostAsJsonAsync(_BuildEndpoint("", id), entity, _SerializerOptions);
             var response = await Client.DeleteAsync(_BuildEndpoint(endpoint, id));
             if (!response.IsSuccessStatusCode)
                 throw new Exception(response.StatusCode.ToString(), new Exception(response.ReasonPhrase));
