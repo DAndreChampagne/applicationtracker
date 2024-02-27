@@ -70,7 +70,8 @@ public static class ApplicationDbContextExtensions {
                 SalaryMax = 277000,
                 DateApplied = new DateTime(2024, 01, 15),
                 FollowUps = new() {
-                    new DateTime(2024, 01, 18)
+                    new DateTime(2024, 01, 18),
+                    new DateTime(2024, 01, 20),
                 },
                 Status = ApplicationStatus.RejectedWithoutInterview,
                 ApplicationStatusReason = "None given",

@@ -9,10 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationTracker.Common.Contexts.ApplicationDbContext>(options => {
     options.UseInMemoryDatabase("ApplicationTracker");
+    // options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
 });
-
-// options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContext' not found.")));
-
 
 
 var controllers = builder.Services.AddControllersWithViews();
@@ -20,14 +18,9 @@ if (builder.Environment.IsDevelopment())
     controllers.AddRazorRuntimeCompilation();
 
 
-
-
-
 builder.Services.AddScoped<ApiService<Contact>>();
 builder.Services.AddScoped<ApiService<Company>>();
 builder.Services.AddScoped<ApiService<Application>>();
-
-
 
 
 
@@ -47,7 +40,7 @@ if (!app.Environment.IsDevelopment()) {
         try {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             context.Database.EnsureCreated();
-        } catch (Exception ex) {
+        } catch (Exception) {
             throw;
         }
     }

@@ -63,9 +63,11 @@ public class Application {
     [Display(Name="Date Applied")]
     public DateTime? DateApplied { get; set; }
 
+    [UIHint("DateList")]
     [Display(Name="Follow up Dates")]
     public List<DateTime> FollowUps { get; set; } = new();
 
+    [UIHint("StringList")]
     public List<string> Notes { get; set; } = new();
 
 }
