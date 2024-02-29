@@ -5,11 +5,34 @@
     "version": "0.2.0",
     "compounds": [
         {
-            "name": "API/Web Launch",
+            "name": ".NET Web/API Launch",
             "configurations": [ "API Launch", "WEB Launch" ]
+        },
+        {
+            "name": "React Web/API Launch",
+            "configurations": [ "Node API Launch", "React Web Launch" ]
         }
     ],
     "configurations": [
+        {
+            "name": "Node API Launch",
+            "request": "launch",
+            "runtimeExecutable": "node",
+            "cwd": "${workspaceFolder}/node/",
+            "program": "${workspaceFolder}/node/app.js",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+
+        {
+            "name": "React Web Launch",
+            "command": "npm run dev",
+            "request": "launch",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/react/"
+        },
         {
             "name": "API Launch",
             "type": "coreclr",
