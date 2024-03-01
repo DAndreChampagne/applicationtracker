@@ -75,9 +75,6 @@ router.delete('/:controller/:id', (req,res) => {
 });
 
 
-module.exports = router;
-
-
 
 
 /*
@@ -142,3 +139,5 @@ const DATA = {
         }
     ]
 };
+
+module.exports = router;
